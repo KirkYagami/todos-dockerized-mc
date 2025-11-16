@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  web:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      - POSTGRES_DB=todos
+      - POSTGRES_USER=todo_user
+      - POSTGRES_PASSWORD=secure_password
+    depends_on:
+      db:
+        condition: service_healthy  # ← Wait for db to be healthy
+
+  db:
+    image: postgres:15
+    volumes:
+      - db_:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=todos
+      - POSTGRES_USER=todo_user
+      - POSTGRES_PASSWORD=secure_password
+    healthcheck:  # ← Add health check
+      test: ["CMD-SHELL", "pg_isready -U todo_user -d todos"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_:
